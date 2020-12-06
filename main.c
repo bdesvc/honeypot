@@ -38,7 +38,8 @@ void* System(int id)
 
 	Strip(&credentials.password);
 
-	if(credentials.password[0] == '\0' || credentials.username == '\0'){
+	if(credentials.password[0] == '\0' || credentials.username == '\0')
+	{
 		write(honeypot.fd, "\n\nLogin failed\r\n", strlen("\n\nLogin failed\r\n"));
 		sleep(3);
 		shutdown(honeypot.fd, 2);
@@ -76,23 +77,32 @@ void* System(int id)
 				write(honeypot.fd, "\033[2J\033[H", strlen("\033[2J\033[H"));
 				write(honeypot.fd, BusyBox, strlen(BusyBox));
 			}
-			if(strstr(Args[0], "cd")){
-				if(i == 2){
-					if(strstr(Args[1], "..")){
+			if(strstr(Args[0], "cd"))
+			{
+				if(i == 2)
+				{
+					if(strstr(Args[1], ".."))
+					{
 						Paths[honeypot.fd] = "/";
-					}else{
+					}
+					else
+					{
 						Paths[honeypot.fd] = Args[1];
 					}
 				}
 			}
-			if(strstr(Args[0], "wget")){
+			if(strstr(Args[0], "wget"))
+			{
 				write(honeypot.fd, WGet, strlen(WGet));
 			}
 			if(strstr(Args[0], "ls"))
 			{
-				if(strstr(Paths[honeypot.fd], "/")){
+				if(strstr(Paths[honeypot.fd], "/"))
+				{
 					write(honeypot.fd, ListFiles, strlen(ListFiles));
-				}else{
+				}
+				else
+				{
 					write(honeypot.fd, "\r\n", strlen("\r\n"));
 				}
 			}
