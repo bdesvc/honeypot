@@ -62,16 +62,39 @@ void* System(int id)
 
 		char* token = strtok(Data, " ");
 		size_t i = 0;
-		while(token != NULL) {
+		while(token != NULL) 
+		{
 			Args[i] = token;
 			i++;
 			token = strtok(NULL, " ");
 		}
 
-		if(i == 1){
-			if(strstr(Args[0], "clear")){
+		if(i != 0)
+		{
+			if(strstr(Args[0], "clear"))
+			{
 				write(honeypot.fd, "\033[2J\033[H", strlen("\033[2J\033[H"));
 				write(honeypot.fd, BusyBox, strlen(BusyBox));
+			}
+			if(strstr(Args[0], "cd")){
+				if(i == 2){
+					if(strstr(Args[1], "..")){
+						Paths[honeypot.fd] = "/";
+					}else{
+						Paths[honeypot.fd] = Args[1];
+					}
+				}
+			}
+			if(strstr(Args[0], "wget")){
+				write(honeypot.fd, WGet, strlen(WGet));
+			}
+			if(strstr(Args[0], "ls"))
+			{
+				if(strstr(Paths[honeypot.fd], "/")){
+					write(honeypot.fd, ListFiles, strlen(ListFiles));
+				}else{
+					write(honeypot.fd, "\r\n", strlen("\r\n"));
+				}
 			}
 		}
 	}
