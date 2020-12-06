@@ -13,97 +13,97 @@
 #include "strings.h"
 
 struct honeypot_t Honeypots[]; // define array for honeypot clients instead of passing structs
-char* Paths[];
+char* Paths[]; // define current paths for each user/malware
 
-int connCounter = 0;
+int connCounter = 0; // define connection counter
 
 void* System(int id)
 {
-	struct creds_t credentials;
-	struct honeypot_t honeypot = Honeypots[id];
+	struct creds_t credentials; // initialize credentials
+	struct honeypot_t honeypot = Honeypots[id]; // get honeypot user info
 
-	char ConnBuffer[1024];
-	read(honeypot.fd, &ConnBuffer, 1024);
+	char ConnBuffer[1024]; // define read buffer
+	read(honeypot.fd, &ConnBuffer, 1024); // read
 
-	write(honeypot.fd, "dvr login: ", strlen("dvr login: "));
-	read(honeypot.fd, &credentials.username, 32);
+	write(honeypot.fd, "dvr login: ", strlen("dvr login: ")); // send dvr login
+	read(honeypot.fd, &credentials.username, 32); // read username
 
-	Strip(&credentials.username);
-
-
-
-	write(honeypot.fd, "password: ", strlen("password: "));
-	read(honeypot.fd, &credentials.password, 32);
+	Strip(&credentials.username); // strip username
 
 
-	Strip(&credentials.password);
 
-	if(credentials.password[0] == '\0' || credentials.username == '\0')
+	write(honeypot.fd, "password: ", strlen("password: ")); // send password
+	read(honeypot.fd, &credentials.password, 32); // read password
+
+
+	Strip(&credentials.password); // strip password
+
+	if(credentials.password[0] == '\0' || credentials.username[0] == '\0') // check if either strings are empty
 	{
-		write(honeypot.fd, "\n\nLogin failed\r\n", strlen("\n\nLogin failed\r\n"));
-		sleep(3);
-		shutdown(honeypot.fd, 2);
-		pthread_exit(NULL);
+		write(honeypot.fd, "\n\nLogin failed\r\n", strlen("\n\nLogin failed\r\n")); // send login empty
+		sleep(3); // wait 3 seconds
+		shutdown(honeypot.fd, 2); // shutdown socket
+		pthread_exit(NULL); // kill thread
 	}
 
-	Paths[honeypot.fd] = "/";
+	Paths[honeypot.fd] = "/"; // set path
 
-	write(honeypot.fd, BusyBox, strlen(BusyBox));
+	write(honeypot.fd, BusyBox, strlen(BusyBox)); // send busybox intro
 
-	while(1)
+	while(1) // while 1
 	{
-		char Data[1024];
+		char Data[1024]; // define buffer for input with size of 1024
 
-		SendPrompt(honeypot.fd, credentials.username, Paths[honeypot.fd]);
-		read(honeypot.fd, Data, 1024);
+		SendPrompt(honeypot.fd, credentials.username, Paths[honeypot.fd]); // send prompt defined in utils.h
+		read(honeypot.fd, Data, 1024); // read data
 
-		Strip(&Data);
+		Strip(&Data); // strip data
 
-		char* Args[1024];
+		char* Args[1024]; // define char* array with size of 1024
 
-		char* token = strtok(Data, " ");
-		size_t i = 0;
-		while(token != NULL) 
+		char* token = strtok(Data, " "); // find next " "
+		size_t i = 0; // define i as 0
+		while(token != NULL) // while token isn't null
 		{
-			Args[i] = token;
-			i++;
-			token = strtok(NULL, " ");
+			Args[i] = token; // add argument to array
+			i++; // add 1 to i
+			token = strtok(NULL, " "); // find next token
 		}
 
-		if(i != 0)
+		if(i != 0) // if arguments (i) is not 0
 		{
-			if(strstr(Args[0], "clear"))
+			if(strstr(Args[0], "clear")) // if argument 0 contains clear
 			{
-				write(honeypot.fd, "\033[2J\033[H", strlen("\033[2J\033[H"));
-				write(honeypot.fd, BusyBox, strlen(BusyBox));
+				write(honeypot.fd, "\033[2J\033[H", strlen("\033[2J\033[H")); // send ascii clear screen
+				write(honeypot.fd, BusyBox, strlen(BusyBox)); // send busybox intro
 			}
-			if(strstr(Args[0], "cd"))
+			if(strstr(Args[0], "cd")) // if argument 0 contains cd
 			{
-				if(i == 2)
+				if(i == 2) // if 1 argument was giving cd path, etc.
 				{
-					if(strstr(Args[1], ".."))
+					if(strstr(Args[1], "..")) // check if its dot to return
 					{
-						Paths[honeypot.fd] = "/";
+						Paths[honeypot.fd] = "/"; // set path to default
 					}
-					else
+					else // if its not .. set new path
 					{
-						Paths[honeypot.fd] = Args[1];
+						Paths[honeypot.fd] = Args[1]; // set path to argument 1
 					}
 				}
 			}
-			if(strstr(Args[0], "wget"))
+			if(strstr(Args[0], "wget")) // if argument 0 contains wget
 			{
-				write(honeypot.fd, WGet, strlen(WGet));
+				write(honeypot.fd, WGet, strlen(WGet)); // send wget string defined in strings.h
 			}
-			if(strstr(Args[0], "ls"))
+			if(strstr(Args[0], "ls")) // if argument 0 contains ls
 			{
-				if(strstr(Paths[honeypot.fd], "/"))
+				if(strstr(Paths[honeypot.fd], "/")) // write the list of fake files in / directory
 				{
-					write(honeypot.fd, ListFiles, strlen(ListFiles));
+					write(honeypot.fd, ListFiles, strlen(ListFiles)); // send fake files
 				}
-				else
+				else // if its not /
 				{
-					write(honeypot.fd, "\r\n", strlen("\r\n"));
+					write(honeypot.fd, "\r\n", strlen("\r\n")); // send newline because its a empty folder
 				}
 			}
 		}
