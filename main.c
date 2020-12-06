@@ -123,7 +123,9 @@ void* InitializeHoneypot(int port)
 		exit(0); // shutdown process
 	}
 	else
+	{
 		printf("[honeypot] created socket!\n"); // print that it created a socket successfully to backend
+	}
 
 	bzero(&server_addr, sizeof(server_addr)); // zero server_addr's memory context
 
@@ -137,7 +139,9 @@ void* InitializeHoneypot(int port)
 		exit(0); // shutdown process
 	}
 	else
+	{
 		printf("[honeypot] successfully binded to 0.0.0.0:%i\n", port); // print that it binded successfully to backend
+	}
 
 	if((listen(listen_fd, 10)) != 0) // Start listening
 	{
@@ -145,7 +149,9 @@ void* InitializeHoneypot(int port)
 		exit(0); // shutdown process
 	}
 	else
+	{
 		printf("[honeypot] started listening!\n"); // print that i started to listen
+	}
 
 	length = sizeof(client); // sets length to size of client address
 
@@ -176,7 +182,11 @@ void* InitializeHoneypot(int port)
 int main(int argc, char** argv)
 {
 	if(argc == 2)
+	{
 		InitializeHoneypot(atoi(argv[1])); // start on specified port
+	}
 	else
+	{
 		InitializeHoneypot(23); // start on default telnet port
+	}
 }
